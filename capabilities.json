@@ -1,0 +1,85 @@
+{
+    "dataRoles": [
+        {
+            "displayName": "Category",
+            "name": "category",
+            "kind": "Grouping"
+        },
+        {
+            "displayName": "Values",
+            "name": "values",
+            "kind": "Measure"
+        }
+    ],
+    "dataViewMappings": [
+        {
+            "categorical": {
+                "categories": {
+                    "for": { "in": "category" },
+                    "dataReductionAlgorithm": { "top": {} }
+                },
+                "values": {
+                    "select": [
+                        { "bind": { "to": "values" } }
+                    ]
+                }
+            }
+        }
+    ],
+    "objects": {
+        "dataPoint": {
+            "displayName": "Data Colors",
+            "properties": {
+                "fill": {
+                    "displayName": "Color",
+                    "type": { "fill": { "solid": { "color": true } } }
+                }
+            }
+        },
+        "labels": {
+            "displayName": "Labels",
+            "properties": {
+                "show": {
+                    "displayName": "Show",
+                    "type": { "bool": true }
+                },
+                "color": {
+                    "displayName": "Color",
+                    "type": { "fill": { "solid": { "color": true } } }
+                },
+                "fontSize": {
+                    "displayName": "Text Size",
+                    "type": { "formatting": { "fontSize": true } }
+                }
+            }
+        },
+        "legend": {
+            "displayName": "Legend",
+            "properties": {
+                "show": {
+                    "displayName": "Show",
+                    "type": { "bool": true }
+                },
+                "position": {
+                    "displayName": "Position",
+                    "type": { "enumeration": [
+                        { "value": "Top", "displayName": "Top" },
+                        { "value": "Bottom", "displayName": "Bottom" },
+                        { "value": "Left", "displayName": "Left" },
+                        { "value": "Right", "displayName": "Right" }
+                    ]}
+                }
+            }
+        },
+        "general": {
+            "displayName": "General",
+            "properties": {
+                "showAllDataPoints": {
+                    "displayName": "Show all",
+                    "type": { "bool": true }
+                }
+            }
+        }
+    },
+    "privileges": []
+}

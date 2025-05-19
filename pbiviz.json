@@ -1,0 +1,26 @@
+{
+    "visual": {
+        "name": "stackedFunnel",
+        "displayName": "stackedFunnel",
+        "guid": "stackedFunnel65C487A14D624F4EAD13A942DBCD987F",
+        "visualClassName": "Visual",
+        "version": "1.0.0.0",
+        "description": "Funnel chart with divisions",
+        "supportUrl": "",
+        "gitHubUrl": ""
+    },
+    "apiVersion": "5.3.0",
+    "author": {
+        "name": "Mateo Alexander Barona Mayorga",
+        "email": "mateobarona3102@gmail.com"
+    },
+    "assets": {
+        "icon": "assets/icon.png"
+    },
+    "externalJS": null,
+    "style": "style/visual.less",
+    "capabilities": "capabilities.json",
+    "dependencies": null,
+    "stringResources": [],
+    "version": "1.0.0.0"
+}
