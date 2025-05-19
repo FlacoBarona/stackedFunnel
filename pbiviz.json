@@ -6,8 +6,8 @@
         "visualClassName": "Visual",
         "version": "1.0.0.0",
         "description": "Funnel chart with divisions",
-        "supportUrl": "",
-        "gitHubUrl": ""
+        "supportUrl": "https://github.com/FlacoBarona/stackedFunnel/issues",
+        "gitHubUrl": "https://github.com/FlacoBarona/stackedFunnel.git"
     },
     "apiVersion": "5.3.0",
     "author": {
