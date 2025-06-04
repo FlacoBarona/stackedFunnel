@@ -5,8 +5,8 @@ import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualC
 import DialogConstructorOptions = powerbiVisualsApi.extensibility.visual.DialogConstructorOptions;
 var powerbiKey: any = "powerbi";
 var powerbi: any = window[powerbiKey];
-var stackedFunnel65C487A14D624F4EAD13A942DBCD987F: IVisualPlugin = {
-    name: 'stackedFunnel65C487A14D624F4EAD13A942DBCD987F',
+var stackedFunnel65C487A14D624F4EAD13A942DBCD987F_DEBUG: IVisualPlugin = {
+    name: 'stackedFunnel65C487A14D624F4EAD13A942DBCD987F_DEBUG',
     displayName: 'stackedFunnel',
     class: 'Visual',
     apiVersion: '5.3.0',
@@ -27,6 +27,6 @@ var stackedFunnel65C487A14D624F4EAD13A942DBCD987F: IVisualPlugin = {
 if (typeof powerbi !== "undefined") {
     powerbi.visuals = powerbi.visuals || {};
     powerbi.visuals.plugins = powerbi.visuals.plugins || {};
-    powerbi.visuals.plugins["stackedFunnel65C487A14D624F4EAD13A942DBCD987F"] = stackedFunnel65C487A14D624F4EAD13A942DBCD987F;
+    powerbi.visuals.plugins["stackedFunnel65C487A14D624F4EAD13A942DBCD987F_DEBUG"] = stackedFunnel65C487A14D624F4EAD13A942DBCD987F_DEBUG;
 }
-export default stackedFunnel65C487A14D624F4EAD13A942DBCD987F;
+export default stackedFunnel65C487A14D624F4EAD13A942DBCD987F_DEBUG;

@@ -13,6 +13,7 @@ export declare class Visual implements IVisual {
     private legendContainer;
     private host;
     private selectionManager;
+    private funnelData;
     constructor(options: VisualConstructorOptions);
     update(options: VisualUpdateOptions): void;
     private prepareHierarchyData;
@@ -22,4 +23,9 @@ export declare class Visual implements IVisual {
      * This method is called once every time we open properties pane or when the user edit any format property.
      */
     getFormattingModel(): powerbi.visuals.FormattingModel;
+    /**
+     * This function is called to notify the visual about the selection state changes
+     *
+     */
+    onSelectionChanged(e?: powerbi.extensibility.ISelectionId[]): void;
 }

@@ -503,7 +503,6 @@ function empty() {
 /* harmony export */   Ltv: () => (/* reexport safe */ d3_selection__WEBPACK_IMPORTED_MODULE_5__.Lt),
 /* harmony export */   Sk5: () => (/* reexport safe */ d3_hierarchy__WEBPACK_IMPORTED_MODULE_2__.Sk),
 /* harmony export */   T9B: () => (/* reexport safe */ d3_array__WEBPACK_IMPORTED_MODULE_0__.T9),
-/* harmony export */   TNc: () => (/* reexport safe */ d3_array__WEBPACK_IMPORTED_MODULE_0__.TN),
 /* harmony export */   UMr: () => (/* reexport safe */ d3_scale__WEBPACK_IMPORTED_MODULE_3__.UM),
 /* harmony export */   czq: () => (/* reexport safe */ d3_array__WEBPACK_IMPORTED_MODULE_0__.cz),
 /* harmony export */   t55: () => (/* reexport safe */ d3_scale_chromatic__WEBPACK_IMPORTED_MODULE_4__.t5)
@@ -940,13 +939,11 @@ function delayConstant(id, value) {
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   T9: () => (/* reexport safe */ _max_js__WEBPACK_IMPORTED_MODULE_1__.A),
-/* harmony export */   TN: () => (/* reexport safe */ _group_js__WEBPACK_IMPORTED_MODULE_0__.TN),
-/* harmony export */   cz: () => (/* reexport safe */ _sum_js__WEBPACK_IMPORTED_MODULE_2__.A)
+/* harmony export */   T9: () => (/* reexport safe */ _max_js__WEBPACK_IMPORTED_MODULE_0__.A),
+/* harmony export */   cz: () => (/* reexport safe */ _sum_js__WEBPACK_IMPORTED_MODULE_1__.A)
 /* harmony export */ });
-/* harmony import */ var _group_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6223);
-/* harmony import */ var _max_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(846);
-/* harmony import */ var _sum_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1907);
+/* harmony import */ var _max_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(846);
+/* harmony import */ var _sum_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1907);
 
 
 
@@ -2251,398 +2248,6 @@ function create(node, id, self) {
 
 /***/ }),
 
-/***/ 3370:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   b: () => (/* binding */ Visual)
-/* harmony export */ });
-/* harmony import */ var powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7674);
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(756);
-/*
-*  Power BI Visual CLI
-*
-*  Copyright (c) Microsoft Corporation
-*  All rights reserved.
-*  MIT License
-*
-*  Permission is hereby granted, free of charge, to any person obtaining a copy
-*  of this software and associated documentation files (the ""Software""), to deal
-*  in the Software without restriction, including without limitation the rights
-*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-*  copies of the Software, and to permit persons to whom the Software is
-*  furnished to do so, subject to the following conditions:
-*
-*  The above copyright notice and this permission notice shall be included in
-*  all copies or substantial portions of the Software.
-*
-*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-*  THE SOFTWARE.
-*/
-
-
-
-
-class Visual {
-    target;
-    updateCount;
-    formattingSettings;
-    formattingSettingsService;
-    svg;
-    container;
-    legendContainer;
-    host;
-    selectionManager;
-    constructor(options) {
-        console.log('Constructor called');
-        this.formattingSettingsService = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .FormattingSettingsService */ .O();
-        this.target = options.element;
-        this.host = options.host;
-        this.selectionManager = this.host.createSelectionManager();
-        this.updateCount = 0;
-        // Create SVG container with explicit dimensions
-        this.svg = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this.target)
-            .append('svg')
-            .attr('width', '100%')
-            .attr('height', '100%')
-            .style('background-color', '#f0f0f0'); // Light gray background to see the container
-        // Create main container for the funnel
-        this.container = this.svg.append('g')
-            .attr('class', 'funnel-container');
-        // Create legend container
-        this.legendContainer = this.svg.append('g')
-            .attr('class', 'legend-container');
-    }
-    update(options) {
-        try {
-            console.log('Update called');
-            if (!options || !options.dataViews || !options.dataViews[0]) {
-                console.error('No data available');
-                return;
-            }
-            const dataView = options.dataViews[0];
-            if (!dataView.categorical) {
-                console.error('No categorical data');
-                return;
-            }
-            const categorical = dataView.categorical;
-            const categoryColumns = categorical.categories; // Array: for hierarchy and legend
-            const valueFields = categorical.values; // Array: for measures
-            if (!categoryColumns || !valueFields || !categoryColumns[0] || !valueFields[0]) {
-                console.error('Missing required fields');
-                return;
-            }
-            // Get dimensions
-            const width = options.viewport.width;
-            const height = options.viewport.height;
-            if (width <= 0 || height <= 0) {
-                console.error('Invalid viewport dimensions');
-                return;
-            }
-            // Update SVG dimensions
-            this.svg
-                .attr('width', width)
-                .attr('height', height);
-            // Clear previous content
-            this.container.selectAll('*').remove();
-            this.legendContainer.selectAll('*').remove();
-            this.svg.selectAll('foreignObject.funnel-scroll').remove();
-            d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this.target).selectAll('.funnel-tooltip').remove();
-            // --- Tooltip ---
-            const tooltip = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this.target)
-                .append('div')
-                .attr('class', 'funnel-tooltip')
-                .style('position', 'absolute')
-                .style('pointer-events', 'none')
-                .style('background', 'rgba(0,0,0,0.8)')
-                .style('color', '#fff')
-                .style('padding', '6px 10px')
-                .style('border-radius', '4px')
-                .style('font-size', '12px')
-                .style('display', 'none')
-                .style('z-index', 10);
-            // --- Data Preparation ---
-            // Compose stage labels from all category columns except the legend one
-            const numStages = categoryColumns[0].values.length;
-            const hasLegendCategory = categoryColumns.length > 1;
-            const legendCategoryCol = hasLegendCategory ? categoryColumns[1] : null;
-            const legendCategories = hasLegendCategory ? Array.from(new Set(legendCategoryCol.values.map(String))) : ["All"];
-            // Compose stage keys (e.g., Phase) and legend keys (e.g., City)
-            const stages = Array(numStages).fill(0).map((_, i) => categoryColumns.map((col, j) => (j === 1 ? null : col.values[i])).filter(x => x !== null).join(' / '));
-            // Data for each stage: [{stage, values: [{legend, value, idx}]}]
-            const data = stages.map((stage, i) => {
-                let legend = hasLegendCategory ? legendCategoryCol.values[i] : "All";
-                return {
-                    stage,
-                    values: [{
-                            legend: legend,
-                            value: Number(valueFields[0].values[i]),
-                            idx: i
-                        }]
-                };
-            });
-            // Group by stage, then by legend
-            const grouped = d3__WEBPACK_IMPORTED_MODULE_1__/* .groups */ .TNc(data, d => d.stage);
-            const funnelData = grouped.map(([stage, arr]) => {
-                // For each stage, group by legend
-                const legendMap = new Map();
-                arr.forEach(d => {
-                    d.values.forEach(v => {
-                        if (!legendMap.has(v.legend))
-                            legendMap.set(v.legend, 0);
-                        legendMap.set(v.legend, legendMap.get(v.legend) + v.value);
-                    });
-                });
-                return {
-                    stage,
-                    values: Array.from(legendMap.entries()).map(([legend, value]) => ({ legend, value }))
-                };
-            });
-            // For each stage, sum the values for width calculation
-            const totals = funnelData.map(d => d3__WEBPACK_IMPORTED_MODULE_1__/* .sum */ .czq(d.values, v => v.value));
-            const maxTotal = d3__WEBPACK_IMPORTED_MODULE_1__/* .max */ .T9B(totals) || 1;
-            // --- Responsive Layout ---
-            const leftLabelWidth = Math.max(80, width * 0.15); // Responsive label width
-            const legendHeight = 30;
-            const legendTop = 10;
-            const chartTop = legendTop + legendHeight + 20;
-            const availableHeight = height - chartTop - 10;
-            const availableWidth = width - leftLabelWidth;
-            const funnelWidth = Math.max(availableWidth, 100); // Always fit funnel to available width
-            // --- Draw Left Labels and Bars (evenly distributed, fill area) ---
-            // Calculate barHeight and barGap to fit all bars in availableHeight
-            let funnelLevels = funnelData.length;
-            let barGap = 10;
-            let barHeight = Math.max(18, Math.floor((availableHeight - (funnelLevels - 1) * barGap) / funnelLevels));
-            if (barHeight < 18) {
-                barHeight = 18;
-                barGap = Math.max(2, Math.floor((availableHeight - funnelLevels * barHeight) / (funnelLevels - 1)));
-            }
-            const totalFunnelHeight = funnelLevels * barHeight + (funnelLevels - 1) * barGap;
-            const centerOffset = Math.max((width - (leftLabelWidth + funnelWidth)) / 2, 0);
-            const color = d3__WEBPACK_IMPORTED_MODULE_1__/* .scaleOrdinal */ .UMr(d3__WEBPACK_IMPORTED_MODULE_1__/* .schemeCategory10 */ .t55).domain(legendCategories);
-            const totalContentWidth = leftLabelWidth + funnelWidth;
-            const needsHScroll = funnelWidth > (width - leftLabelWidth);
-            // --- Scrollable Area: Both Labels and Bars ---
-            this.svg.selectAll('foreignObject.funnel-scroll').remove();
-            let scrollForeign = this.svg.append('foreignObject')
-                .attr('class', 'funnel-scroll')
-                .attr('x', centerOffset)
-                .attr('y', chartTop)
-                .attr('width', totalContentWidth)
-                .attr('height', totalFunnelHeight);
-            let scrollDiv = scrollForeign.append('xhtml:div')
-                .style('width', totalContentWidth + 'px')
-                .style('height', totalFunnelHeight + 'px')
-                .style('overflow-y', 'hidden')
-                .style('overflow-x', needsHScroll ? 'auto' : 'hidden')
-                .style('display', 'block');
-            let scrollSvg = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(scrollDiv.node()).append('svg')
-                .attr('width', totalContentWidth)
-                .attr('height', totalFunnelHeight);
-            // Left labels group
-            let leftLabelsGroup = scrollSvg.append('g')
-                .attr('class', 'funnel-left-labels');
-            // Bars group
-            let barsGroup = scrollSvg.append('g')
-                .attr('class', 'funnel-bars')
-                .attr('transform', `translate(${leftLabelWidth},0)`);
-            // --- Interactivity State ---
-            let selectedLegend = null;
-            funnelData.forEach((stageData, i) => {
-                const y = i * (barHeight + barGap);
-                // Left label
-                leftLabelsGroup.append('text')
-                    .attr('x', leftLabelWidth - 10)
-                    .attr('y', y + barHeight / 2)
-                    .attr('text-anchor', 'end')
-                    .attr('dominant-baseline', 'middle')
-                    .text(stageData.stage)
-                    .style('font-size', '14px');
-                // Bars
-                let x = 0;
-                const total = totals[i];
-                const stageWidth = (total / maxTotal) * funnelWidth;
-                const barXOffset = (funnelWidth - stageWidth) / 2;
-                stageData.values.forEach(seg => {
-                    const segWidth = (seg.value / total) * stageWidth;
-                    barsGroup.append('rect')
-                        .attr('x', barXOffset + x)
-                        .attr('y', y)
-                        .attr('width', segWidth)
-                        .attr('height', barHeight)
-                        .attr('fill', color(seg.legend))
-                        .attr('cursor', 'pointer')
-                        .attr('opacity', function (d) {
-                        if (selectedLegend && d && d.legend !== selectedLegend)
-                            return 0.3;
-                        return 1;
-                    })
-                        .on('mouseover', (event) => {
-                        tooltip.style('display', 'block')
-                            .html(`<b>${stageData.stage}</b><br>${seg.legend}: ${seg.value}`);
-                    })
-                        .on('mousemove', (event) => {
-                        tooltip.style('left', (event.pageX + 10) + 'px')
-                            .style('top', (event.pageY - 20) + 'px');
-                    })
-                        .on('mouseout', () => {
-                        tooltip.style('display', 'none');
-                    })
-                        .on('click', () => {
-                        if (selectedLegend === seg.legend) {
-                            selectedLegend = null;
-                            barsGroup.selectAll('rect').attr('opacity', 1);
-                        }
-                        else {
-                            selectedLegend = seg.legend;
-                            barsGroup.selectAll('rect')
-                                .attr('opacity', function (d) {
-                                if (selectedLegend && d && d.legend !== selectedLegend)
-                                    return 0.3;
-                                return 1;
-                            });
-                        }
-                    });
-                    // Value label (centered in segment if wide enough)
-                    if (segWidth > 30) {
-                        barsGroup.append('text')
-                            .attr('x', barXOffset + x + segWidth / 2)
-                            .attr('y', y + barHeight / 2)
-                            .attr('text-anchor', 'middle')
-                            .attr('dominant-baseline', 'middle')
-                            .text(seg.value)
-                            .style('fill', '#fff')
-                            .style('font-size', '12px');
-                    }
-                    x += segWidth;
-                });
-            });
-            const legendAreaWidth = Math.max(width, legendCategories.length * 120);
-            const legendLeft = (width - Math.min(legendAreaWidth, width)) / 2;
-            let legendGroup = this.legendContainer
-                .attr('transform', `translate(${legendLeft}, ${legendTop})`);
-            // Draw legend items
-            const legendItemWidth = 120;
-            const legendItemHeight = 20;
-            const legendSpacing = 10;
-            legendCategories.forEach((category, i) => {
-                const legendItem = legendGroup.append('g')
-                    .attr('class', 'legend-item')
-                    .attr('transform', `translate(${i * (legendItemWidth + legendSpacing)}, 0)`)
-                    .style('cursor', 'pointer');
-                // Legend color box
-                legendItem.append('rect')
-                    .attr('width', legendItemHeight)
-                    .attr('height', legendItemHeight)
-                    .attr('fill', color(category))
-                    .attr('rx', 3)
-                    .attr('ry', 3);
-                // Legend text
-                legendItem.append('text')
-                    .attr('x', legendItemHeight + 5)
-                    .attr('y', legendItemHeight / 2)
-                    .attr('dominant-baseline', 'middle')
-                    .text(category)
-                    .style('font-size', '12px');
-                // Add click interaction
-                legendItem.on('click', () => {
-                    if (selectedLegend === category) {
-                        selectedLegend = null;
-                        barsGroup.selectAll('rect').attr('opacity', 1);
-                    }
-                    else {
-                        selectedLegend = category;
-                        barsGroup.selectAll('rect')
-                            .attr('opacity', function (d) {
-                            if (selectedLegend && d && d.legend !== selectedLegend)
-                                return 0.3;
-                            return 1;
-                        });
-                    }
-                });
-                // Add hover effect
-                legendItem.on('mouseover', function () {
-                    d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this).select('rect')
-                        .attr('stroke', '#666')
-                        .attr('stroke-width', 2);
-                }).on('mouseout', function () {
-                    d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this).select('rect')
-                        .attr('stroke', 'none');
-                });
-            });
-            console.log('Visual update completed successfully');
-        }
-        catch (error) {
-            console.error('Error in update method:', error);
-        }
-    }
-    prepareHierarchyData(categories, values) {
-        // Create hierarchical structure
-        const root = {
-            name: "root",
-            children: []
-        };
-        // Group data by hierarchy levels
-        const groupedData = new Map();
-        categories.forEach((category, i) => {
-            const value = Number(values[0].values[i]);
-            const path = category.values.map(v => v.toString());
-            let current = groupedData;
-            path.forEach((level, j) => {
-                if (!current.has(level)) {
-                    current.set(level, new Map());
-                }
-                if (j === path.length - 1) {
-                    current.get(level).set('value', value);
-                    current.get(level).set('category', level);
-                }
-                current = current.get(level);
-            });
-        });
-        // Convert Map to hierarchical structure
-        const convertMapToHierarchy = (map, name) => {
-            const node = {
-                name: name,
-                children: []
-            };
-            map.forEach((value, key) => {
-                if (key === 'value') {
-                    node.value = value;
-                }
-                else if (key === 'category') {
-                    node.category = value;
-                }
-                else {
-                    node.children.push(convertMapToHierarchy(value, key));
-                }
-            });
-            return node;
-        };
-        return d3__WEBPACK_IMPORTED_MODULE_1__/* .hierarchy */ .Sk5(convertMapToHierarchy(groupedData, 'root'));
-    }
-    drillDown(node) {
-        // Implement drill-down logic here
-        // This would typically involve updating the visual with the children data
-        console.log('Drilling down to:', node.data.name);
-    }
-    /**
-     * Returns properties pane formatting model content hierarchies, properties and latest formatting values, Then populate properties pane.
-     * This method is called once every time we open properties pane or when the user edit any format property.
-     */
-    getFormattingModel() {
-        return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
-    }
-}
-
-
-/***/ }),
-
 /***/ 3446:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -3278,19 +2883,6 @@ EnterNode.prototype = {
 
 /***/ }),
 
-/***/ 5084:
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   A: () => (/* binding */ identity)
-/* harmony export */ });
-function identity(x) {
-  return x;
-}
-
-
-/***/ }),
-
 /***/ 5152:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -3626,84 +3218,6 @@ function basis(t1, v0, v1, v2, v3) {
         v3 = i < n - 1 ? values[i + 2] : 2 * v2 - v1;
     return basis((t - i / n) * n, v0, v1, v2, v3);
   };
-}
-
-
-/***/ }),
-
-/***/ 6223:
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   TN: () => (/* binding */ groups)
-/* harmony export */ });
-/* unused harmony exports default, flatGroup, flatRollup, rollup, rollups, index, indexes */
-/* harmony import */ var internmap__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4119);
-/* harmony import */ var _identity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5084);
-
-
-
-function group(values, ...keys) {
-  return nest(values, identity, identity, keys);
-}
-
-function groups(values, ...keys) {
-  return nest(values, Array.from, _identity_js__WEBPACK_IMPORTED_MODULE_0__/* ["default"] */ .A, keys);
-}
-
-function flatten(groups, keys) {
-  for (let i = 1, n = keys.length; i < n; ++i) {
-    groups = groups.flatMap(g => g.pop().map(([key, value]) => [...g, key, value]));
-  }
-  return groups;
-}
-
-function flatGroup(values, ...keys) {
-  return flatten(groups(values, ...keys), keys);
-}
-
-function flatRollup(values, reduce, ...keys) {
-  return flatten(rollups(values, reduce, ...keys), keys);
-}
-
-function rollup(values, reduce, ...keys) {
-  return nest(values, identity, reduce, keys);
-}
-
-function rollups(values, reduce, ...keys) {
-  return nest(values, Array.from, reduce, keys);
-}
-
-function index(values, ...keys) {
-  return nest(values, identity, unique, keys);
-}
-
-function indexes(values, ...keys) {
-  return nest(values, Array.from, unique, keys);
-}
-
-function unique(values) {
-  if (values.length !== 1) throw new Error("duplicate key");
-  return values[0];
-}
-
-function nest(values, map, reduce, keys) {
-  return (function regroup(values, i) {
-    if (i >= keys.length) return reduce(values);
-    const groups = new internmap__WEBPACK_IMPORTED_MODULE_1__/* .InternMap */ .B();
-    const keyof = keys[i++];
-    let index = -1;
-    for (const value of values) {
-      const key = keyof(value, ++index, values);
-      const group = groups.get(key);
-      if (group) group.push(value);
-      else groups.set(key, [value]);
-    }
-    for (const [key, values] of groups) {
-      groups.set(key, regroup(values, i));
-    }
-    return map(groups);
-  })(values, 0);
 }
 
 
@@ -4451,6 +3965,409 @@ function hsl2rgb(h, m1, m2) {
 
 /***/ }),
 
+/***/ 7028:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   SC: () => (/* binding */ VisualFormattingSettingsModel)
+/* harmony export */ });
+/* unused harmony exports DataPointCardSettings, LabelsCardSettings, LegendCardSettings, FunnelSettings, LabelSettings, LegendSettings, ColorSettings, GeneralSettings, AnimationSettings, InteractionSettings */
+/* harmony import */ var powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7674);
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+
+
+/**
+ * Data Point Formatting Card
+ */
+class DataPointCardSettings extends powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.SimpleCard */ .z.Tn {
+    defaultColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "defaultColor",
+        displayName: "Default color",
+        value: { value: "" }
+    });
+    showAllDataPoints = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "showAllDataPoints",
+        displayName: "Show all",
+        value: true
+    });
+    fill = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "fill",
+        displayName: "Color",
+        value: { value: "#01B8AA" }
+    });
+    fillRule = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "fillRule",
+        displayName: "Color saturation",
+        value: { value: "" }
+    });
+    fontSize = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "fontSize",
+        displayName: "Text Size",
+        value: 12
+    });
+    name = "dataPoint";
+    displayName = "Data Colors";
+}
+/**
+ * Labels Formatting Card
+ */
+class LabelsCardSettings extends powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.SimpleCard */ .z.Tn {
+    show = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "show",
+        displayName: "Show",
+        value: true
+    });
+    color = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "color",
+        displayName: "Color",
+        value: { value: "#000000" }
+    });
+    fontSize = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "fontSize",
+        displayName: "Text Size",
+        value: 12
+    });
+    name = "labels";
+    displayName = "Labels";
+}
+/**
+ * Legend Formatting Card
+ */
+class LegendCardSettings extends powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.SimpleCard */ .z.Tn {
+    show = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "show",
+        displayName: "Show",
+        value: true
+    });
+    position = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
+        name: "position",
+        displayName: "Position",
+        value: { value: "top", displayName: "Top" },
+        items: [
+            { value: "top", displayName: "Top" },
+            { value: "bottom", displayName: "Bottom" },
+            { value: "left", displayName: "Left" },
+            { value: "right", displayName: "Right" }
+        ]
+    });
+    name = "legend";
+    displayName = "Legend";
+}
+/**
+* visual settings model class
+*
+*/
+class VisualFormattingSettingsModel extends powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.Model */ .z.Kx {
+    funnel = new FunnelSettings();
+    labels = new LabelSettings();
+    legend = new LegendSettings();
+    colors = new ColorSettings();
+    general = new GeneralSettings();
+    animation = new AnimationSettings();
+    interaction = new InteractionSettings();
+    cards = [
+        this.funnel,
+        this.labels,
+        this.legend,
+        this.colors,
+        this.general,
+        this.animation,
+        this.interaction
+    ];
+}
+class FunnelSettings extends powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.SimpleCard */ .z.Tn {
+    barHeight = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "barHeight",
+        displayName: "Bar Height",
+        value: 30
+    });
+    barGap = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "barGap",
+        displayName: "Gap Between Bars",
+        value: 10
+    });
+    barCornerRadius = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "barCornerRadius",
+        displayName: "Bar Corner Radius",
+        value: 3
+    });
+    barBorderWidth = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "barBorderWidth",
+        displayName: "Bar Border Width",
+        value: 1
+    });
+    barBorderColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "barBorderColor",
+        displayName: "Bar Border Color",
+        value: { value: "#000000" }
+    });
+    barOpacity = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "barOpacity",
+        displayName: "Bar Opacity",
+        value: 1
+    });
+    name = "funnel";
+    displayName = "Funnel Settings";
+}
+class LabelSettings extends powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.SimpleCard */ .z.Tn {
+    showValues = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "showValues",
+        displayName: "Show Values",
+        value: true
+    });
+    valueFontSize = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "valueFontSize",
+        displayName: "Value Font Size",
+        value: 12
+    });
+    valueColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "valueColor",
+        displayName: "Value Color",
+        value: { value: "#FFFFFF" }
+    });
+    stageFontSize = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "stageFontSize",
+        displayName: "Stage Label Font Size",
+        value: 14
+    });
+    stageColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "stageColor",
+        displayName: "Stage Label Color",
+        value: { value: "#000000" }
+    });
+    valueFormat = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
+        name: "valueFormat",
+        displayName: "Value Format",
+        value: { value: "none", displayName: "None" },
+        items: [
+            { value: "none", displayName: "None" },
+            { value: "percentage", displayName: "Percentage" },
+            { value: "thousands", displayName: "Thousands" },
+            { value: "millions", displayName: "Millions" },
+            { value: "billions", displayName: "Billions" },
+            { value: "custom", displayName: "Custom" }
+        ]
+    });
+    customFormat = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.TextInput */ .z.ks({
+        name: "customFormat",
+        displayName: "Custom Format",
+        value: "",
+        placeholder: "Enter custom format (e.g., #,##0.00)"
+    });
+    labelPosition = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
+        name: "labelPosition",
+        displayName: "Label Position",
+        value: { value: "inside", displayName: "Inside" },
+        items: [
+            { value: "inside", displayName: "Inside" },
+            { value: "outside", displayName: "Outside" }
+        ]
+    });
+    name = "labels";
+    displayName = "Label Settings";
+}
+class LegendSettings extends powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.SimpleCard */ .z.Tn {
+    show = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "show",
+        displayName: "Show Legend",
+        value: true
+    });
+    position = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
+        name: "position",
+        displayName: "Position",
+        value: { value: "top", displayName: "Top" },
+        items: [
+            { value: "top", displayName: "Top" },
+            { value: "bottom", displayName: "Bottom" },
+            { value: "left", displayName: "Left" },
+            { value: "right", displayName: "Right" }
+        ]
+    });
+    fontSize = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "fontSize",
+        displayName: "Font Size",
+        value: 12
+    });
+    title = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.TextInput */ .z.ks({
+        name: "title",
+        displayName: "Legend Title",
+        value: "",
+        placeholder: "Enter legend title"
+    });
+    titleFontSize = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "titleFontSize",
+        displayName: "Title Font Size",
+        value: 14
+    });
+    name = "legend";
+    displayName = "Legend Settings";
+}
+class ColorSettings extends powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.SimpleCard */ .z.Tn {
+    useCustomColors = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "useCustomColors",
+        displayName: "Use Custom Colors",
+        value: false
+    });
+    colorPalette = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
+        name: "colorPalette",
+        displayName: "Color Palette",
+        value: { value: "default", displayName: "Default" },
+        items: [
+            { value: "default", displayName: "Default" },
+            { value: "category10", displayName: "Category 10" },
+            { value: "category20", displayName: "Category 20" },
+            { value: "custom", displayName: "Custom" }
+        ]
+    });
+    customColors = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "customColors",
+        displayName: "Custom Colors",
+        value: { value: "#1f77b4" }
+    });
+    gradientStart = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "gradientStart",
+        displayName: "Gradient Start Color",
+        value: { value: "#1f77b4" }
+    });
+    gradientEnd = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "gradientEnd",
+        displayName: "Gradient End Color",
+        value: { value: "#ff7f0e" }
+    });
+    useGradient = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "useGradient",
+        displayName: "Use Gradient",
+        value: false
+    });
+    highlightColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "highlightColor",
+        displayName: "Highlight Color",
+        value: { value: "#ffd700" }
+    });
+    name = "colors";
+    displayName = "Color Settings";
+}
+class GeneralSettings extends powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.SimpleCard */ .z.Tn {
+    background = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "background",
+        displayName: "Background Color",
+        value: { value: "#FFFFFF" }
+    });
+    showTooltip = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "showTooltip",
+        displayName: "Show Tooltip",
+        value: true
+    });
+    tooltipFormat = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.TextInput */ .z.ks({
+        name: "tooltipFormat",
+        displayName: "Tooltip Format",
+        value: "{category}: {value}",
+        placeholder: "Enter tooltip format (e.g., {category}: {value})"
+    });
+    padding = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "padding",
+        displayName: "Padding",
+        value: 10
+    });
+    borderRadius = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "borderRadius",
+        displayName: "Border Radius",
+        value: 0
+    });
+    borderColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
+        name: "borderColor",
+        displayName: "Border Color",
+        value: { value: "#000000" }
+    });
+    borderWidth = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "borderWidth",
+        displayName: "Border Width",
+        value: 0
+    });
+    name = "general";
+    displayName = "General Settings";
+}
+class AnimationSettings extends powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.SimpleCard */ .z.Tn {
+    enableAnimation = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "enableAnimation",
+        displayName: "Enable Animation",
+        value: true
+    });
+    animationDuration = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "animationDuration",
+        displayName: "Animation Duration (ms)",
+        value: 500
+    });
+    animationEasing = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
+        name: "animationEasing",
+        displayName: "Animation Easing",
+        value: { value: "easeInOut", displayName: "Ease In Out" },
+        items: [
+            { value: "linear", displayName: "Linear" },
+            { value: "easeIn", displayName: "Ease In" },
+            { value: "easeOut", displayName: "Ease Out" },
+            { value: "easeInOut", displayName: "Ease In Out" }
+        ]
+    });
+    name = "animation";
+    displayName = "Animation Settings";
+}
+class InteractionSettings extends powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.SimpleCard */ .z.Tn {
+    enableDrilldown = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "enableDrilldown",
+        displayName: "Enable Drilldown",
+        value: false
+    });
+    enableHighlight = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "enableHighlight",
+        displayName: "Enable Highlight",
+        value: true
+    });
+    enableSelection = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "enableSelection",
+        displayName: "Enable Selection",
+        value: true
+    });
+    selectionMode = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
+        name: "selectionMode",
+        displayName: "Selection Mode",
+        value: { value: "single", displayName: "Single" },
+        items: [
+            { value: "single", displayName: "Single" },
+            { value: "multiple", displayName: "Multiple" }
+        ]
+    });
+    name = "interaction";
+    displayName = "Interaction Settings";
+}
+
+
+/***/ }),
+
 /***/ 7045:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -4775,7 +4692,8 @@ function textFunction(value) {
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   O: () => (/* reexport safe */ _FormattingSettingsService__WEBPACK_IMPORTED_MODULE_1__.A)
+/* harmony export */   O: () => (/* reexport safe */ _FormattingSettingsService__WEBPACK_IMPORTED_MODULE_1__.A),
+/* harmony export */   z: () => (/* reexport module object */ _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__)
 /* harmony export */ });
 /* harmony import */ var _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9754);
 /* harmony import */ var _FormattingSettingsService__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6667);
@@ -5131,6 +5049,604 @@ function attrFunctionNS(fullname, interpolate, value) {
   return this.select(function() {
     return this.appendChild(create.apply(this, arguments));
   });
+}
+
+
+/***/ }),
+
+/***/ 8205:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   b: () => (/* binding */ Visual)
+/* harmony export */ });
+/* harmony import */ var powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7674);
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(756);
+/* harmony import */ var _settings__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7028);
+/*
+*  Power BI Visual CLI
+*
+*  Copyright (c) Microsoft Corporation
+*  All rights reserved.
+*  MIT License
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the ""Software""), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in
+*  all copies or substantial portions of the Software.
+*
+*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+*  THE SOFTWARE.
+*/
+
+
+
+
+
+class Visual {
+    target;
+    updateCount;
+    formattingSettings;
+    formattingSettingsService;
+    svg;
+    container;
+    legendContainer;
+    host;
+    selectionManager;
+    funnelData;
+    constructor(options) {
+        console.log('Constructor called');
+        this.formattingSettingsService = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .FormattingSettingsService */ .O();
+        this.target = options.element;
+        this.host = options.host;
+        this.selectionManager = this.host.createSelectionManager();
+        this.updateCount = 0;
+        // Initialize formatting settings
+        this.formattingSettings = new _settings__WEBPACK_IMPORTED_MODULE_2__/* .VisualFormattingSettingsModel */ .SC();
+        // Create SVG container with explicit dimensions
+        this.svg = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this.target)
+            .append('svg')
+            .attr('width', '100%')
+            .attr('height', '100%')
+            .style('background-color', '#f0f0f0'); // Light gray background to see the container
+        // Create main container for the funnel
+        this.container = this.svg.append('g')
+            .attr('class', 'funnel-container');
+        // Create legend container
+        this.legendContainer = this.svg.append('g')
+            .attr('class', 'legend-container');
+    }
+    update(options) {
+        try {
+            console.log('Update called with options:', options);
+            if (!options || !options.dataViews || !options.dataViews[0]) {
+                console.error('No data available');
+                return;
+            }
+            const dataView = options.dataViews[0];
+            console.log('DataView:', JSON.stringify(dataView, null, 2));
+            // Get dimensions
+            const width = options.viewport.width;
+            const height = options.viewport.height;
+            if (width <= 0 || height <= 0) {
+                console.error('Invalid viewport dimensions');
+                return;
+            }
+            // Update SVG dimensions and background
+            this.svg
+                .attr('width', width)
+                .attr('height', height)
+                .style('background-color', this.formattingSettings.general.background.value.value);
+            // Clear previous content
+            this.container.selectAll('*').remove();
+            this.legendContainer.selectAll('*').remove();
+            this.svg.selectAll('foreignObject.funnel-scroll').remove();
+            d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this.target).selectAll('.funnel-tooltip').remove();
+            // --- Tooltip ---
+            const tooltip = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this.target)
+                .append('div')
+                .attr('class', 'funnel-tooltip')
+                .style('position', 'absolute')
+                .style('pointer-events', 'none')
+                .style('background', 'rgba(0,0,0,0.8)')
+                .style('color', '#fff')
+                .style('padding', '6px 10px')
+                .style('border-radius', '4px')
+                .style('font-size', '12px')
+                .style('display', 'none')
+                .style('z-index', 10);
+            // --- Data Preparation ---
+            let funnelData = [];
+            let legendCategories = ["All"];
+            let stages = [];
+            let selectionIds = [];
+            if (dataView.categorical) {
+                const categorical = dataView.categorical;
+                const categoryColumns = categorical.categories;
+                const valueFields = categorical.values;
+                if (valueFields && valueFields.length > 0) {
+                    // Process stages and values
+                    if (categoryColumns && categoryColumns.length > 0) {
+                        // Get stages from the first category
+                        stages = categoryColumns[0].values.map(String);
+                        // Get legend categories if available
+                        if (categoryColumns.length > 1) {
+                            legendCategories = Array.from(new Set(categoryColumns[1].values.map(String)));
+                        }
+                        else {
+                            // If no second category for legend, use the stages as legend categories
+                            legendCategories = Array.from(new Set(stages));
+                        }
+                        // Create funnel data with segments and selection IDs
+                        const stageMap = new Map();
+                        stages.forEach((stage, i) => {
+                            if (!stageMap.has(stage)) {
+                                stageMap.set(stage, {
+                                    stage,
+                                    values: []
+                                });
+                            }
+                            const stageData = stageMap.get(stage);
+                            const value = Number(valueFields[0].values[i]);
+                            const legend = categoryColumns.length > 1
+                                ? String(categoryColumns[1].values[i])
+                                : stage;
+                            // Create Selection ID
+                            // For categorical data, include both the stage and the segment/product in the SelectionId
+                            const selectionId = this.host.createSelectionIdBuilder()
+                                .withCategory(categoryColumns[0], i) // Stage category
+                                .withCategory(categoryColumns.length > 1 ? categoryColumns[1] : null, categoryColumns.length > 1 ? i : null) // Segment/Product category
+                                .createSelectionId();
+                            console.log(`Creating selectionId for stage index ${i}, category ${categoryColumns.length > 0 ? categoryColumns[0].values[i] : 'N/A'}, segment ${categoryColumns.length > 1 ? categoryColumns[1].values[i] : 'N/A'}:`, selectionId);
+                            // Add segment to the stage
+                            stageData.values.push({
+                                legend,
+                                value,
+                                idx: i,
+                                selectionId // Add selectionId to segment data
+                            });
+                            // Don't collect all selectionIds here, let onSelectionChanged handle the current selection state
+                            // selectionIds.push(selectionId);
+                        });
+                        funnelData = Array.from(stageMap.values());
+                        // Sort segments within each stage by value (descending)
+                        funnelData.forEach(stage => {
+                            stage.values.sort((a, b) => b.value - a.value);
+                        });
+                    }
+                    else {
+                        // Handle case with just values (calculated measures)
+                        stages = valueFields.map((field, i) => field.source.displayName || `Measure ${i + 1}`);
+                        legendCategories = ["All"]; // Default legend for this case
+                        funnelData = stages.map((stage, i) => {
+                            const value = Number(valueFields[i].values[0]);
+                            // Create Selection ID for value only - this might not support filtering by stage in this case
+                            const selectionId = this.host.createSelectionIdBuilder()
+                                .withMeasure(valueFields[i].source.queryName)
+                                .createSelectionId();
+                            console.log(`Creating selectionId for value field ${valueFields[i].source.displayName}:`, selectionId);
+                            // Don't collect all selectionIds here
+                            // selectionIds.push(selectionId);
+                            return {
+                                stage,
+                                values: [{
+                                        legend: "All",
+                                        value,
+                                        idx: i,
+                                        selectionId // Add selectionId to segment data
+                                    }]
+                            };
+                        });
+                    }
+                }
+            }
+            else if (dataView.table) {
+                console.log('Processing table data for interactivity and rates');
+                const columns = dataView.table.columns;
+                const rows = dataView.table.rows;
+                console.log('Table columns:', columns);
+                console.log('Table rows:', rows);
+                if (rows && rows.length > 0) {
+                    stages = rows.map((_, i) => `Row ${i + 1}`); // Using row index as stage name for simplicity
+                    legendCategories = ["Value"]; // Default legend for table data
+                    funnelData = rows.map((row, i) => {
+                        const value = Number(row[0]);
+                        // Create Selection ID for the row
+                        const selectionId = this.host.createSelectionIdBuilder()
+                            .withTable(dataView.table, i)
+                            .createSelectionId();
+                        console.log(`Creating selectionId for table row ${i}:`, selectionId);
+                        // Don't collect all selectionIds here
+                        // selectionIds.push(selectionId);
+                        return {
+                            stage: stages[i],
+                            values: [{
+                                    legend: "Value", // Using a default legend for table data
+                                    value,
+                                    idx: i,
+                                    selectionId // Add selectionId to segment data
+                                }]
+                        };
+                    });
+                }
+            }
+            if (!funnelData || funnelData.length === 0) {
+                console.error('No valid data to display');
+                return;
+            }
+            console.log('Processed funnel data with Selection IDs:', funnelData);
+            this.funnelData = funnelData;
+            // --- Calculate Conversion and Drop-off Rates ---
+            const totalStages = funnelData.length;
+            const stageTotals = funnelData.map(d => d3__WEBPACK_IMPORTED_MODULE_1__/* .sum */ .czq(d.values, v => v.value));
+            const firstStageTotal = stageTotals[0] || 1; // Avoid division by zero
+            const rates = [];
+            funnelData.forEach((stageData, i) => {
+                const currentStageTotal = stageTotals[i];
+                const conversion = (currentStageTotal / firstStageTotal) * 100;
+                const dropOff = i > 0 ? ((stageTotals[i - 1] - currentStageTotal) / stageTotals[i - 1]) * 100 : null;
+                rates.push({
+                    stage: stageData.stage,
+                    conversion: Math.round(conversion * 100) / 100, // Round to 2 decimal places
+                    dropOff: dropOff !== null ? Math.round(dropOff * 100) / 100 : null
+                });
+            });
+            console.log('Calculated rates:', rates);
+            // For each stage, sum the values for width calculation
+            const totals = funnelData.map(d => d3__WEBPACK_IMPORTED_MODULE_1__/* .sum */ .czq(d.values, v => v.value));
+            const maxTotal = (d3__WEBPACK_IMPORTED_MODULE_1__/* .max */ .T9B(totals) || 1);
+            // --- Color Scale Setup ---
+            // Ensure color scale is always categorical, mapping legend categories to colors.
+            const colorScale = d3__WEBPACK_IMPORTED_MODULE_1__/* .scaleOrdinal */ .UMr()
+                .domain(legendCategories);
+            // Determine the range of the color scale based on formatting settings.
+            // Gradient setting is not used for determining distinct category colors as per image.
+            switch (this.formattingSettings.colors.colorPalette.value.value) {
+                case 'category20':
+                    // Use a palette with enough distinct colors, e.g., d3.schemeCategory10 or d3.schemeAccent
+                    // Category10 has 10 colors, Accent has 8. Both are sufficient for 3 segments.
+                    colorScale.range(d3__WEBPACK_IMPORTED_MODULE_1__/* .schemeCategory10 */ .t55);
+                    break;
+                case 'custom':
+                    // If customColors is a single color, repeat it for all categories.
+                    // If it's a palette, the settings structure would need to support multiple colors.
+                    // Assuming customColors provides a single color for now.
+                    const customColor = this.formattingSettings.colors.customColors.value.value;
+                    colorScale.range(legendCategories.map(() => customColor));
+                    break;
+                case 'default':
+                default:
+                    // Default to a standard categorical palette like Category10
+                    colorScale.range(d3__WEBPACK_IMPORTED_MODULE_1__/* .schemeCategory10 */ .t55);
+                    break;
+            }
+            // --- Responsive Layout ---
+            const leftLabelWidth = Math.max(80, width * 0.15);
+            const legendHeight = this.formattingSettings.legend.show.value ? 30 : 0;
+            const legendTop = 10;
+            const chartTop = legendTop + legendHeight + 20;
+            const availableHeight = height - chartTop - 10;
+            const availableWidth = width - leftLabelWidth;
+            const funnelWidth = Math.max(availableWidth, 100);
+            // Calculate bar dimensions
+            let funnelLevels = funnelData.length;
+            let barGap = this.formattingSettings.funnel.barGap.value;
+            let barHeight = Math.max(18, Math.floor((availableHeight - (funnelLevels - 1) * barGap) / funnelLevels));
+            if (barHeight < 18) {
+                barHeight = 18;
+                barGap = Math.max(2, Math.floor((availableHeight - funnelLevels * barHeight) / (funnelLevels - 1)));
+            }
+            const totalFunnelHeight = funnelLevels * barHeight + (funnelLevels - 1) * barGap;
+            const centerOffset = Math.max((width - (leftLabelWidth + funnelWidth)) / 2, 0);
+            // --- Scrollable Area ---
+            const totalContentWidth = leftLabelWidth + funnelWidth;
+            const needsHScroll = funnelWidth > (width - leftLabelWidth);
+            let scrollForeign = this.svg.append('foreignObject')
+                .attr('class', 'funnel-scroll')
+                .attr('x', centerOffset)
+                .attr('y', chartTop)
+                .attr('width', totalContentWidth)
+                .attr('height', totalFunnelHeight);
+            let scrollDiv = scrollForeign.append('xhtml:div')
+                .style('width', totalContentWidth + 'px')
+                .style('height', totalFunnelHeight + 'px')
+                .style('overflow-y', 'hidden')
+                .style('overflow-x', needsHScroll ? 'auto' : 'hidden')
+                .style('display', 'block');
+            let scrollSvg = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(scrollDiv.node()).append('svg')
+                .attr('width', totalContentWidth)
+                .attr('height', totalFunnelHeight);
+            // Left labels group
+            let leftLabelsGroup = scrollSvg.append('g')
+                .attr('class', 'funnel-left-labels');
+            // Bars group
+            let barsGroup = scrollSvg.append('g')
+                .attr('class', 'funnel-bars')
+                .attr('transform', `translate(${leftLabelWidth},0)`);
+            // --- Interactivity State ---
+            // No need for local selectedLegend state if relying on Power BI selection
+            // let selectedLegend: string | null = null;
+            // Draw the funnel
+            funnelData.forEach((stageData, i) => {
+                const y = i * (barHeight + barGap);
+                // Left label
+                leftLabelsGroup.append('text')
+                    .attr('x', leftLabelWidth - 10)
+                    .attr('y', y + barHeight / 2)
+                    .attr('text-anchor', 'end')
+                    .attr('dominant-baseline', 'middle')
+                    .text(stageData.stage)
+                    .style('font-size', `${this.formattingSettings.labels.stageFontSize.value}px`)
+                    .style('fill', this.formattingSettings.labels.stageColor.value.value);
+                // Bars
+                let x = 0;
+                const total = totals[i];
+                const stageWidth = (total / maxTotal) * funnelWidth;
+                const barXOffset = (funnelWidth - stageWidth) / 2;
+                stageData.values.forEach(seg => {
+                    const segWidth = (seg.value / total) * stageWidth;
+                    const bar = barsGroup.append('rect')
+                        .datum(seg)
+                        .attr('x', barXOffset + x)
+                        .attr('y', y)
+                        .attr('width', segWidth)
+                        .attr('height', barHeight)
+                        .attr('fill', colorScale(seg.legend)) // Use legend category to get color
+                        .attr('rx', this.formattingSettings.funnel.barCornerRadius.value)
+                        .attr('ry', this.formattingSettings.funnel.barCornerRadius.value)
+                        .attr('cursor', 'pointer')
+                        .attr('opacity', function () {
+                        // Opacity is controlled by onSelectionChanged
+                        return 1; // Default to full opacity, highlighting will dim
+                    });
+                    // Add interactivity (Power BI Selection)
+                    bar.on('click', function (event, d) {
+                        // Data is now available as the second argument 'd'
+                        // Simple toggle selection
+                        console.log('Clicked segment data:', d);
+                        if (d && d.selectionId) { // Check if d and d.selectionId are valid before using
+                            if (this.selectionManager.contains(d.selectionId)) { // Use type assertion for this and contains
+                                this.selectionManager.clear(); // Clear if already selected
+                            }
+                            else {
+                                this.selectionManager.select(d.selectionId, false); // Select clicked item (single select)
+                            }
+                        }
+                        // Opacity update is handled by onSelectionChanged
+                        // barsGroup.selectAll('rect')
+                        //    .attr('opacity', (rectD: FunnelValue) =>
+                        //         this.selectionManager.hasSelection()
+                        //         ? (this.selectionManager.getSelectionIds().some(selectedId => (selectedId as any).equals(rectD.selectionId))) ? 1 : 0.3
+                        //         : 1
+                        //     );
+                        event.stopPropagation(); // Prevent SVG click event
+                    }.bind(this)); // Keep .bind(this) to preserve the Visual instance context for 'this'
+                    // --- Tooltip Update ---
+                    bar.on('mouseover', function (event) {
+                        const d = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(event.currentTarget).datum(); // Reliably get bound data
+                        // Find the rate for the current stage
+                        const stageRate = rates.find(r => r.stage === d.stage); // Access stage from data object
+                        if (this.formattingSettings.general.showTooltip.value) {
+                            let tooltipHtml = `<b>${d.stage}</b><br>${d.legend}: ${d.value}`;
+                            if (stageRate) {
+                                tooltipHtml += `<br>Conversion: ${stageRate.conversion}%`;
+                                if (stageRate.dropOff !== null) {
+                                    tooltipHtml += `<br>Drop-off: ${stageRate.dropOff}%`;
+                                }
+                            }
+                            tooltip.style('display', 'block')
+                                .html(tooltipHtml);
+                        }
+                    })
+                        .on('mousemove', (event) => {
+                        if (this.formattingSettings.general.showTooltip.value) {
+                            tooltip.style('left', (event.pageX + 10) + 'px')
+                                .style('top', (event.pageY - 20) + 'px');
+                        }
+                    })
+                        .on('mouseout', () => {
+                        if (this.formattingSettings.general.showTooltip.value) {
+                            tooltip.style('display', 'none');
+                        }
+                    });
+                    // Value label
+                    if (this.formattingSettings.labels.showValues.value && segWidth > 30) {
+                        barsGroup.append('text')
+                            .attr('x', barXOffset + x + segWidth / 2)
+                            .attr('y', y + barHeight / 2)
+                            .attr('text-anchor', 'middle')
+                            .attr('dominant-baseline', 'middle')
+                            .text(seg.value)
+                            .style('fill', this.formattingSettings.labels.valueColor.value.value)
+                            .style('font-size', `${this.formattingSettings.labels.valueFontSize.value}px`);
+                    }
+                    x += segWidth;
+                });
+            });
+            // Draw legend if enabled
+            if (this.formattingSettings.legend.show.value) {
+                const legendAreaWidth = Math.max(width, legendCategories.length * 120);
+                const legendLeft = (width - Math.min(legendAreaWidth, width)) / 2;
+                let legendGroup = this.legendContainer
+                    .attr('transform', `translate(${legendLeft}, ${legendTop})`);
+                const legendItemWidth = 120;
+                const legendItemHeight = 20;
+                const legendSpacing = 10;
+                legendCategories.forEach((category, i) => {
+                    const legendItem = legendGroup.append('g')
+                        .attr('class', 'legend-item')
+                        .attr('transform', `translate(${i * (legendItemWidth + legendSpacing)}, 0)`)
+                        .style('cursor', 'pointer');
+                    // Find a sample selection ID for the legend category
+                    const sampleSegment = funnelData.flatMap(stage => stage.values).find(v => v.legend === category);
+                    const legendSelectionId = sampleSegment ? sampleSegment.selectionId : null;
+                    // Legend color box
+                    legendItem.append('rect')
+                        .attr('width', legendItemHeight)
+                        .attr('height', legendItemHeight)
+                        .attr('fill', colorScale(category)) // Use legend category to get color for legend item
+                        .attr('rx', 3)
+                        .attr('ry', 3)
+                        .attr('opacity', function () {
+                        // Opacity is controlled by onSelectionChanged
+                        return 1; // Default to full opacity, highlighting will dim
+                    });
+                    // Legend text
+                    legendItem.append('text')
+                        .attr('x', legendItemHeight + 5)
+                        .attr('y', legendItemHeight / 2)
+                        .attr('dominant-baseline', 'middle')
+                        .text(category)
+                        .style('font-size', `${this.formattingSettings.legend.fontSize.value}px`);
+                    // Add click interaction (Power BI Selection)
+                    legendItem.on('click', function (event, d) {
+                        const category = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(event.currentTarget).select('text').text(); // Get category text from the clicked legend item
+                        // Find all selection IDs for the clicked legend category
+                        const categorySelectionIds = funnelData.flatMap(stage => stage.values)
+                            .filter(v => v.legend === category && v.selectionId !== undefined) // Filter out undefined selectionIds
+                            .map(v => v.selectionId);
+                        // Simple toggle selection for the category
+                        if (categorySelectionIds.length > 0) { // Check if there are valid selectionIds
+                            // Check if ALL selectionIds for this category are currently selected
+                            const allSelected = categorySelectionIds.every(id => this.selectionManager.contains(id)); // Use type assertion for this and contains
+                            if (allSelected) {
+                                this.selectionManager.clear(); // Clear if all are already selected
+                            }
+                            else {
+                                this.selectionManager.select(categorySelectionIds, false); // Select all items in the category (single select behavior)
+                            }
+                        }
+                        // Opacity update is handled by onSelectionChanged
+                        // barsGroup.selectAll('rect')
+                        //    .attr('opacity', (rectD: FunnelValue) =>
+                        //         this.selectionManager.hasSelection()
+                        //         ? (this.selectionManager.getSelectionIds().some(selectedId => (selectedId as any).equals(rectD.selectionId))) ? 1 : 0.3
+                        //         : 1
+                        //     );
+                        //  legendGroup.selectAll('.legend-item rect')
+                        //      .attr('opacity', (rectD: any, i: number, nodes: any[]) => {
+                        //          const legendCategory = d3.select(nodes[i].parentNode).select('text').text();
+                        //          // Find a corresponding selection ID in the current selection based on category
+                        //          const sampleSegment = this.funnelData.flatMap(stage => stage.values).find(v => v.legend === legendCategory);
+                        //          const legendSelectionId = sampleSegment ? sampleSegment.selectionId : null;
+                        //          return this.selectionManager.hasSelection()
+                        //              ? (legendSelectionId && this.selectionManager.getSelectionIds().some(selectedId => (selectedId as any).equals(legendSelectionId))) ? 1 : 0.3
+                        //               : 1;
+                        //       });
+                        event.stopPropagation(); // Prevent SVG click event
+                    }.bind(this)); // Keep .bind(this) to preserve the Visual instance context for 'this'
+                    // Add hover effect
+                    legendItem.on('mouseover', function () {
+                        d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this).select('rect')
+                            .attr('stroke', '#666')
+                            .attr('stroke-width', 2);
+                    }).on('mouseout', function () {
+                        d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this).select('rect')
+                            .attr('stroke', 'none');
+                    });
+                });
+            }
+            console.log('Visual update completed successfully');
+            // Call onSelectionChanged initially to apply correct opacity based on current selection state
+            this.onSelectionChanged(this.selectionManager.getSelectionIds());
+        }
+        catch (error) {
+            console.error('Error in update method:', error);
+        }
+    }
+    prepareHierarchyData(categories, values) {
+        // Create hierarchical structure
+        const root = {
+            name: "root",
+            children: []
+        };
+        // Group data by hierarchy levels
+        const groupedData = new Map();
+        categories.forEach((category, i) => {
+            const value = Number(values[0].values[i]);
+            const path = category.values.map(v => v.toString());
+            let current = groupedData;
+            path.forEach((level, j) => {
+                if (!current.has(level)) {
+                    current.set(level, new Map());
+                }
+                if (j === path.length - 1) {
+                    current.get(level).set('value', value);
+                    current.get(level).set('category', level);
+                }
+                current = current.get(level);
+            });
+        });
+        // Convert Map to hierarchical structure
+        const convertMapToHierarchy = (map, name) => {
+            const node = {
+                name: name,
+                children: []
+            };
+            map.forEach((value, key) => {
+                if (key === 'value') {
+                    node.value = value;
+                }
+                else if (key === 'category') {
+                    node.category = value;
+                }
+                else {
+                    node.children.push(convertMapToHierarchy(value, key));
+                }
+            });
+            return node;
+        };
+        return d3__WEBPACK_IMPORTED_MODULE_1__/* .hierarchy */ .Sk5(convertMapToHierarchy(groupedData, 'root'));
+    }
+    drillDown(node) {
+        // Implement drill-down logic here
+        // This would typically involve updating the visual with the children data
+        console.log('Drilling down to:', node.data.name);
+    }
+    /**
+     * Returns properties pane formatting model content hierarchies, properties and latest formatting values, Then populate properties pane.
+     * This method is called once every time we open properties pane or when the user edit any format property.
+     */
+    getFormattingModel() {
+        return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
+    }
+    /**
+     * This function is called to notify the visual about the selection state changes
+     *
+     */
+    onSelectionChanged(e) {
+        console.log('Selection changed:', e);
+        // Update visual based on the selection state
+        const selectionIds = e || [];
+        const hasSelection = selectionIds.length > 0;
+        this.svg.selectAll('.funnel-bars rect')
+            .attr('opacity', (d) => {
+            if (!hasSelection)
+                return 1;
+            // Check if the segment's selectionId is in the current selection
+            return (d.selectionId && selectionIds.some(selectedId => selectedId.equals(d.selectionId))) ? 1 : 0.3;
+        });
+        this.svg.selectAll('.legend-item rect')
+            .attr('opacity', (d, i, nodes) => {
+            if (!hasSelection)
+                return 1;
+            const legendCategory = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(nodes[i].parentNode).select('text').text();
+            // Find a corresponding selection ID in the current selection based on category
+            const sampleSegment = this.funnelData.flatMap(stage => stage.values).find(v => v.legend === legendCategory); // Use type assertion for this
+            const legendSelectionId = sampleSegment ? sampleSegment.selectionId : null;
+            return (legendSelectionId && selectionIds.some(selectedId => selectedId.equals(legendSelectionId))) ? 1 : 0.3;
+        });
+    }
 }
 
 
@@ -6680,10 +7196,16 @@ function arrayAll(select) {
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Kx: () => (/* binding */ Model),
+/* harmony export */   PA: () => (/* binding */ ItemDropdown),
 /* harmony export */   St: () => (/* binding */ CompositeCard),
-/* harmony export */   Tn: () => (/* binding */ SimpleCard)
+/* harmony export */   Tn: () => (/* binding */ SimpleCard),
+/* harmony export */   iB: () => (/* binding */ NumUpDown),
+/* harmony export */   jF: () => (/* binding */ ToggleSwitch),
+/* harmony export */   ks: () => (/* binding */ TextInput),
+/* harmony export */   sk: () => (/* binding */ ColorPicker)
 /* harmony export */ });
-/* unused harmony exports CardGroupEntity, Model, Group, SimpleSlice, AlignmentGroup, ToggleSwitch, ColorPicker, NumUpDown, Slider, DatePicker, ItemDropdown, AutoDropdown, DurationPicker, ErrorRangeControl, FieldPicker, ItemFlagsSelection, AutoFlagsSelection, TextInput, TextArea, FontPicker, GradientBar, ImageUpload, ListEditor, ReadOnlyText, ShapeMapSelector, CompositeSlice, FontControl, MarginPadding, Container, ContainerItem */
+/* unused harmony exports CardGroupEntity, Group, SimpleSlice, AlignmentGroup, Slider, DatePicker, AutoDropdown, DurationPicker, ErrorRangeControl, FieldPicker, ItemFlagsSelection, AutoFlagsSelection, TextArea, FontPicker, GradientBar, ImageUpload, ListEditor, ReadOnlyText, ShapeMapSelector, CompositeSlice, FontControl, MarginPadding, Container, ContainerItem */
 /* harmony import */ var _utils_FormattingSettingsUtils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8639);
 /**
  * Powerbi utils components classes for custom visual formatting pane objects
@@ -7096,7 +7618,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (visualPlugin)
 /* harmony export */ });
-/* harmony import */ var _src_visual__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3370);
+/* harmony import */ var _src_visual__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8205);
 
 var powerbiKey = "powerbi";
 var powerbi = window[powerbiKey];

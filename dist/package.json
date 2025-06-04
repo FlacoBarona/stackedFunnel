@@ -1,0 +1,17 @@
+{
+		"version": "1.0.0.0",
+		"author": {"name":"Mateo Alexander Barona Mayorga","email":"mateobarona3102@gmail.com"},
+		"resources": [
+			{
+				"resourceId": "rId0",
+				"sourceType": 5,
+				"file": "resources/stackedFunnel65C487A14D624F4EAD13A942DBCD987F.pbiviz.json"
+			}
+		],
+		"visual": {"name":"stackedFunnel","displayName":"stackedFunnel","guid":"stackedFunnel65C487A14D624F4EAD13A942DBCD987F","visualClassName":"Visual","version":"1.0.0.0","description":"Funnel chart with divisions","supportUrl":"https://github.com/FlacoBarona/stackedFunnel/issues","gitHubUrl":"https://github.com/FlacoBarona/stackedFunnel.git"},
+		"metadata": {
+			"pbivizjson": {
+				"resourceId": "rId0"
+			}
+		}
+	}

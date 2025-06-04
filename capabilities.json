@@ -9,14 +9,18 @@
             "displayName": "Values",
             "name": "values",
             "kind": "Measure"
+        },
+        {
+            "displayName": "Legend",
+            "name": "legend",
+            "kind": "Grouping"
         }
     ],
     "dataViewMappings": [
         {
             "categorical": {
                 "categories": {
-                    "for": { "in": "category" },
-                    "dataReductionAlgorithm": { "top": {} }
+                    "for": { "in": "category" }
                 },
                 "values": {
                     "select": [
@@ -27,56 +31,226 @@
         }
     ],
     "objects": {
-        "dataPoint": {
-            "displayName": "Data Colors",
+        "funnel": {
+            "displayName": "Funnel Settings",
             "properties": {
-                "fill": {
-                    "displayName": "Color",
+                "barHeight": {
+                    "displayName": "Bar Height",
+                    "type": { "numeric": true }
+                },
+                "barGap": {
+                    "displayName": "Gap Between Bars",
+                    "type": { "numeric": true }
+                },
+                "barCornerRadius": {
+                    "displayName": "Bar Corner Radius",
+                    "type": { "numeric": true }
+                },
+                "barBorderWidth": {
+                    "displayName": "Bar Border Width",
+                    "type": { "numeric": true }
+                },
+                "barBorderColor": {
+                    "displayName": "Bar Border Color",
                     "type": { "fill": { "solid": { "color": true } } }
+                },
+                "barOpacity": {
+                    "displayName": "Bar Opacity",
+                    "type": { "numeric": true }
                 }
             }
         },
         "labels": {
-            "displayName": "Labels",
+            "displayName": "Label Settings",
             "properties": {
-                "show": {
-                    "displayName": "Show",
+                "showValues": {
+                    "displayName": "Show Values",
                     "type": { "bool": true }
                 },
-                "color": {
-                    "displayName": "Color",
+                "valueFontSize": {
+                    "displayName": "Value Font Size",
+                    "type": { "numeric": true }
+                },
+                "valueColor": {
+                    "displayName": "Value Color",
                     "type": { "fill": { "solid": { "color": true } } }
                 },
-                "fontSize": {
-                    "displayName": "Text Size",
-                    "type": { "formatting": { "fontSize": true } }
+                "stageFontSize": {
+                    "displayName": "Stage Label Font Size",
+                    "type": { "numeric": true }
+                },
+                "stageColor": {
+                    "displayName": "Stage Label Color",
+                    "type": { "fill": { "solid": { "color": true } } }
+                },
+                "valueFormat": {
+                    "displayName": "Value Format",
+                    "type": { "enumeration": [
+                        { "value": "none", "displayName": "None" },
+                        { "value": "percentage", "displayName": "Percentage" },
+                        { "value": "thousands", "displayName": "Thousands" },
+                        { "value": "millions", "displayName": "Millions" },
+                        { "value": "billions", "displayName": "Billions" },
+                        { "value": "custom", "displayName": "Custom" }
+                    ]}
+                },
+                "customFormat": {
+                    "displayName": "Custom Format",
+                    "type": { "text": true }
+                },
+                "labelPosition": {
+                    "displayName": "Label Position",
+                    "type": { "enumeration": [
+                        { "value": "inside", "displayName": "Inside" },
+                        { "value": "outside", "displayName": "Outside" }
+                    ]}
                 }
             }
         },
         "legend": {
-            "displayName": "Legend",
+            "displayName": "Legend Settings",
             "properties": {
                 "show": {
-                    "displayName": "Show",
+                    "displayName": "Show Legend",
                     "type": { "bool": true }
                 },
                 "position": {
                     "displayName": "Position",
                     "type": { "enumeration": [
-                        { "value": "Top", "displayName": "Top" },
-                        { "value": "Bottom", "displayName": "Bottom" },
-                        { "value": "Left", "displayName": "Left" },
-                        { "value": "Right", "displayName": "Right" }
+                        { "value": "top", "displayName": "Top" },
+                        { "value": "bottom", "displayName": "Bottom" },
+                        { "value": "left", "displayName": "Left" },
+                        { "value": "right", "displayName": "Right" }
                     ]}
+                },
+                "fontSize": {
+                    "displayName": "Font Size",
+                    "type": { "numeric": true }
+                },
+                "title": {
+                    "displayName": "Legend Title",
+                    "type": { "text": true }
+                },
+                "titleFontSize": {
+                    "displayName": "Title Font Size",
+                    "type": { "numeric": true }
+                }
+            }
+        },
+        "colors": {
+            "displayName": "Color Settings",
+            "properties": {
+                "useCustomColors": {
+                    "displayName": "Use Custom Colors",
+                    "type": { "bool": true }
+                },
+                "colorPalette": {
+                    "displayName": "Color Palette",
+                    "type": { "enumeration": [
+                        { "value": "default", "displayName": "Default" },
+                        { "value": "category10", "displayName": "Category 10" },
+                        { "value": "category20", "displayName": "Category 20" },
+                        { "value": "custom", "displayName": "Custom" }
+                    ]}
+                },
+                "customColors": {
+                    "displayName": "Custom Colors",
+                    "type": { "fill": { "solid": { "color": true } } }
+                },
+                "gradientStart": {
+                    "displayName": "Gradient Start Color",
+                    "type": { "fill": { "solid": { "color": true } } }
+                },
+                "gradientEnd": {
+                    "displayName": "Gradient End Color",
+                    "type": { "fill": { "solid": { "color": true } } }
+                },
+                "useGradient": {
+                    "displayName": "Use Gradient",
+                    "type": { "bool": true }
+                },
+                "highlightColor": {
+                    "displayName": "Highlight Color",
+                    "type": { "fill": { "solid": { "color": true } } }
                 }
             }
         },
         "general": {
-            "displayName": "General",
+            "displayName": "General Settings",
             "properties": {
-                "showAllDataPoints": {
-                    "displayName": "Show all",
+                "background": {
+                    "displayName": "Background Color",
+                    "type": { "fill": { "solid": { "color": true } } }
+                },
+                "showTooltip": {
+                    "displayName": "Show Tooltip",
                     "type": { "bool": true }
+                },
+                "tooltipFormat": {
+                    "displayName": "Tooltip Format",
+                    "type": { "text": true }
+                },
+                "padding": {
+                    "displayName": "Padding",
+                    "type": { "numeric": true }
+                },
+                "borderRadius": {
+                    "displayName": "Border Radius",
+                    "type": { "numeric": true }
+                },
+                "borderColor": {
+                    "displayName": "Border Color",
+                    "type": { "fill": { "solid": { "color": true } } }
+                },
+                "borderWidth": {
+                    "displayName": "Border Width",
+                    "type": { "numeric": true }
+                }
+            }
+        },
+        "animation": {
+            "displayName": "Animation Settings",
+            "properties": {
+                "enableAnimation": {
+                    "displayName": "Enable Animation",
+                    "type": { "bool": true }
+                },
+                "animationDuration": {
+                    "displayName": "Animation Duration (ms)",
+                    "type": { "numeric": true }
+                },
+                "animationEasing": {
+                    "displayName": "Animation Easing",
+                    "type": { "enumeration": [
+                        { "value": "linear", "displayName": "Linear" },
+                        { "value": "easeIn", "displayName": "Ease In" },
+                        { "value": "easeOut", "displayName": "Ease Out" },
+                        { "value": "easeInOut", "displayName": "Ease In Out" }
+                    ]}
+                }
+            }
+        },
+        "interaction": {
+            "displayName": "Interaction Settings",
+            "properties": {
+                "enableDrilldown": {
+                    "displayName": "Enable Drilldown",
+                    "type": { "bool": true }
+                },
+                "enableHighlight": {
+                    "displayName": "Enable Highlight",
+                    "type": { "bool": true }
+                },
+                "enableSelection": {
+                    "displayName": "Enable Selection",
+                    "type": { "bool": true }
+                },
+                "selectionMode": {
+                    "displayName": "Selection Mode",
+                    "type": { "enumeration": [
+                        { "value": "single", "displayName": "Single" },
+                        { "value": "multiple", "displayName": "Multiple" }
+                    ]}
                 }
             }
         }
