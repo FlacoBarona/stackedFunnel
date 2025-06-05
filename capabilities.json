@@ -149,25 +149,8 @@
                     "type": { "enumeration": [
                         { "value": "default", "displayName": "Default" },
                         { "value": "category10", "displayName": "Category 10" },
-                        { "value": "category20", "displayName": "Category 20" },
-                        { "value": "custom", "displayName": "Custom" }
+                        { "value": "category20", "displayName": "Category 20" }
                     ]}
-                },
-                "customColors": {
-                    "displayName": "Custom Colors",
-                    "type": { "fill": { "solid": { "color": true } } }
-                },
-                "gradientStart": {
-                    "displayName": "Gradient Start Color",
-                    "type": { "fill": { "solid": { "color": true } } }
-                },
-                "gradientEnd": {
-                    "displayName": "Gradient End Color",
-                    "type": { "fill": { "solid": { "color": true } } }
-                },
-                "useGradient": {
-                    "displayName": "Use Gradient",
-                    "type": { "bool": true }
                 },
                 "highlightColor": {
                     "displayName": "Highlight Color",
@@ -251,6 +234,15 @@
                         { "value": "single", "displayName": "Single" },
                         { "value": "multiple", "displayName": "Multiple" }
                     ]}
+                }
+            }
+        },
+        "dataPoint": {
+            "displayName": "Data colors",
+            "properties": {
+                "fill": {
+                    "displayName": "Fill",
+                    "type": { "fill": { "solid": { "color": true } } }
                 }
             }
         }

@@ -28,10 +28,6 @@
 
 import { formattingSettings } from "powerbi-visuals-utils-formattingmodel";
 
-import FormattingSettingsCard = formattingSettings.SimpleCard;
-import FormattingSettingsSlice = formattingSettings.Slice;
-import FormattingSettingsModel = formattingSettings.Model;
-
 /**
  * Data Point Formatting Card
  */
@@ -135,14 +131,14 @@ export class VisualFormattingSettingsModel extends formattingSettings.Model {
     public animation: AnimationSettings = new AnimationSettings();
     public interaction: InteractionSettings = new InteractionSettings();
 
-    cards = [
+    public cards: formattingSettings.SimpleCard[] = [
         this.funnel,
         this.labels,
         this.legend,
         this.colors,
         this.general,
         this.animation,
-        this.interaction
+        this.interaction,
     ];
 }
 

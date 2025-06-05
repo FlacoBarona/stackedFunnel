@@ -4096,7 +4096,7 @@ class VisualFormattingSettingsModel extends powerbi_visuals_utils_formattingmode
         this.colors,
         this.general,
         this.animation,
-        this.interaction
+        this.interaction,
     ];
 }
 class FunnelSettings extends powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.SimpleCard */ .z.Tn {
@@ -5134,7 +5134,8 @@ class Visual {
                 return;
             }
             const dataView = options.dataViews[0];
-            console.log('DataView:', JSON.stringify(dataView, null, 2));
+            console.log('DataView received in update:', JSON.stringify(dataView, null, 2));
+            console.log('Current Selection State:', this.selectionManager.getSelectionIds());
             // Get dimensions
             const width = options.viewport.width;
             const height = options.viewport.height;
@@ -5306,21 +5307,19 @@ class Visual {
             const totals = funnelData.map(d => d3__WEBPACK_IMPORTED_MODULE_1__/* .sum */ .czq(d.values, v => v.value));
             const maxTotal = (d3__WEBPACK_IMPORTED_MODULE_1__/* .max */ .T9B(totals) || 1);
             // --- Color Scale Setup ---
-            // Ensure color scale is always categorical, mapping legend categories to colors.
+            // Bring back the colorScale based on formatting settings
             const colorScale = d3__WEBPACK_IMPORTED_MODULE_1__/* .scaleOrdinal */ .UMr()
                 .domain(legendCategories);
-            // Determine the range of the color scale based on formatting settings.
-            // Gradient setting is not used for determining distinct category colors as per image.
+            // Bring back the switch statement for color palettes
             switch (this.formattingSettings.colors.colorPalette.value.value) {
                 case 'category20':
+                case 'category10': // Added category10 as an option
                     // Use a palette with enough distinct colors, e.g., d3.schemeCategory10 or d3.schemeAccent
-                    // Category10 has 10 colors, Accent has 8. Both are sufficient for 3 segments.
+                    // Category10 has 10 colors, Accent has 10. Both are sufficient.
                     colorScale.range(d3__WEBPACK_IMPORTED_MODULE_1__/* .schemeCategory10 */ .t55);
                     break;
                 case 'custom':
                     // If customColors is a single color, repeat it for all categories.
-                    // If it's a palette, the settings structure would need to support multiple colors.
-                    // Assuming customColors provides a single color for now.
                     const customColor = this.formattingSettings.colors.customColors.value.value;
                     colorScale.range(legendCategories.map(() => customColor));
                     break;
@@ -5330,6 +5329,11 @@ class Visual {
                     colorScale.range(d3__WEBPACK_IMPORTED_MODULE_1__/* .schemeCategory10 */ .t55);
                     break;
             }
+            // Capture formatting settings and rates for use in event handlers
+            const currentFormattingSettings = this.formattingSettings;
+            const currentRates = rates;
+            // Capture 'this' for use in D3 event handlers
+            const self = this;
             // --- Responsive Layout ---
             const leftLabelWidth = Math.max(80, width * 0.15);
             const legendHeight = this.formattingSettings.legend.show.value ? 30 : 0;
@@ -5350,22 +5354,26 @@ class Visual {
             const centerOffset = Math.max((width - (leftLabelWidth + funnelWidth)) / 2, 0);
             // --- Scrollable Area ---
             const totalContentWidth = leftLabelWidth + funnelWidth;
-            const needsHScroll = funnelWidth > (width - leftLabelWidth);
+            const totalContentHeight = totalFunnelHeight;
+            const needsHScroll = totalContentWidth > (width - centerOffset * 2); // Re-evaluate needsHScroll based on foreignObject width
+            const needsVScroll = totalContentHeight > (height - chartTop - 10); // Re-evaluate needsVScroll based on foreignObject height
             let scrollForeign = this.svg.append('foreignObject')
                 .attr('class', 'funnel-scroll')
                 .attr('x', centerOffset)
                 .attr('y', chartTop)
-                .attr('width', totalContentWidth)
-                .attr('height', totalFunnelHeight);
+                .attr('width', width - centerOffset * 2)
+                .attr('height', height - chartTop - 10);
             let scrollDiv = scrollForeign.append('xhtml:div')
-                .style('width', totalContentWidth + 'px')
-                .style('height', totalFunnelHeight + 'px')
-                .style('overflow-y', 'hidden')
+                .style('width', '100%') // Set div width to 100% of foreignObject
+                .style('height', '100%') // Set div height to 100% of foreignObject
+                .style('overflow-y', needsVScroll ? 'auto' : 'hidden')
                 .style('overflow-x', needsHScroll ? 'auto' : 'hidden')
-                .style('display', 'block');
+                .style('display', 'block')
+                .style('position', 'relative');
             let scrollSvg = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(scrollDiv.node()).append('svg')
                 .attr('width', totalContentWidth)
-                .attr('height', totalFunnelHeight);
+                .attr('height', totalContentHeight)
+                .style('display', 'block');
             // Left labels group
             let leftLabelsGroup = scrollSvg.append('g')
                 .attr('class', 'funnel-left-labels');
@@ -5373,6 +5381,9 @@ class Visual {
             let barsGroup = scrollSvg.append('g')
                 .attr('class', 'funnel-bars')
                 .attr('transform', `translate(${leftLabelWidth},0)`);
+            // Re-append the legend container to the main svg
+            let legendGroup = this.svg.append('g') // Append to main svg
+                .attr('class', 'legend-container'); // Keep the class
             // --- Interactivity State ---
             // No need for local selectedLegend state if relying on Power BI selection
             // let selectedLegend: string | null = null;
@@ -5401,7 +5412,7 @@ class Visual {
                         .attr('y', y)
                         .attr('width', segWidth)
                         .attr('height', barHeight)
-                        .attr('fill', colorScale(seg.legend)) // Use legend category to get color
+                        .attr('fill', colorScale(seg.legend)) // Use colorScale to get color based on legend category
                         .attr('rx', this.formattingSettings.funnel.barCornerRadius.value)
                         .attr('ry', this.formattingSettings.funnel.barCornerRadius.value)
                         .attr('cursor', 'pointer')
@@ -5411,33 +5422,31 @@ class Visual {
                     });
                     // Add interactivity (Power BI Selection)
                     bar.on('click', function (event, d) {
-                        // Data is now available as the second argument 'd'
-                        // Simple toggle selection
                         console.log('Clicked segment data:', d);
                         if (d && d.selectionId) { // Check if d and d.selectionId are valid before using
-                            if (this.selectionManager.contains(d.selectionId)) { // Use type assertion for this and contains
-                                this.selectionManager.clear(); // Clear if already selected
+                            // Use captured 'self' to access selectionManager
+                            // Simplify toggle logic: clear if selected, select if not.
+                            const currentSelectionIds = self.selectionManager.getSelectionIds();
+                            const isSelected = currentSelectionIds.some(selectedId => selectedId.equals(d.selectionId)); // Use equals with type assertion
+                            if (isSelected) {
+                                self.selectionManager.clear(); // Clear if already selected
+                                // Explicitly call onSelectionChanged to update visual state immediately
+                                self.onSelectionChanged(self.selectionManager.getSelectionIds());
                             }
                             else {
-                                this.selectionManager.select(d.selectionId, false); // Select clicked item (single select)
+                                self.selectionManager.select(d.selectionId, false); // Select clicked item (single select)
                             }
                         }
-                        // Opacity update is handled by onSelectionChanged
-                        // barsGroup.selectAll('rect')
-                        //    .attr('opacity', (rectD: FunnelValue) =>
-                        //         this.selectionManager.hasSelection()
-                        //         ? (this.selectionManager.getSelectionIds().some(selectedId => (selectedId as any).equals(rectD.selectionId))) ? 1 : 0.3
-                        //         : 1
-                        //     );
                         event.stopPropagation(); // Prevent SVG click event
-                    }.bind(this)); // Keep .bind(this) to preserve the Visual instance context for 'this'
+                    }); // No .bind(this) needed
                     // --- Tooltip Update ---
                     bar.on('mouseover', function (event) {
                         const d = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(event.currentTarget).datum(); // Reliably get bound data
                         // Find the rate for the current stage
-                        const stageRate = rates.find(r => r.stage === d.stage); // Access stage from data object
-                        if (this.formattingSettings.general.showTooltip.value) {
-                            let tooltipHtml = `<b>${d.stage}</b><br>${d.legend}: ${d.value}`;
+                        const stageRate = currentRates.find(r => r.stage === d.stage); // Access stage from data object, use captured rates
+                        // Check if formattingSettings and general property exist before accessing showTooltip, use captured 'self'
+                        if (self.formattingSettings && self.formattingSettings.general && self.formattingSettings.general.showTooltip.value) { // Use captured 'self'
+                            let tooltipHtml = `<b>${d.stage}</b><br>${d.legend}: ${d.value}`; // Access stage from data object
                             if (stageRate) {
                                 tooltipHtml += `<br>Conversion: ${stageRate.conversion}%`;
                                 if (stageRate.dropOff !== null) {
@@ -5448,14 +5457,16 @@ class Visual {
                                 .html(tooltipHtml);
                         }
                     })
-                        .on('mousemove', (event) => {
-                        if (this.formattingSettings.general.showTooltip.value) {
+                        .on('mousemove', function (event) {
+                        // Check if formattingSettings and general property exist before accessing showTooltip, use captured 'self'
+                        if (self.formattingSettings && self.formattingSettings.general && self.formattingSettings.general.showTooltip.value) { // Use captured 'self'
                             tooltip.style('left', (event.pageX + 10) + 'px')
                                 .style('top', (event.pageY - 20) + 'px');
                         }
                     })
-                        .on('mouseout', () => {
-                        if (this.formattingSettings.general.showTooltip.value) {
+                        .on('mouseout', function () {
+                        // Check if formattingSettings and general property exist before accessing showTooltip, use captured 'self'
+                        if (self.formattingSettings && self.formattingSettings.general && self.formattingSettings.general.showTooltip.value) { // Use captured 'self'
                             tooltip.style('display', 'none');
                         }
                     });
@@ -5477,15 +5488,33 @@ class Visual {
             if (this.formattingSettings.legend.show.value) {
                 const legendAreaWidth = Math.max(width, legendCategories.length * 120);
                 const legendLeft = (width - Math.min(legendAreaWidth, width)) / 2;
-                let legendGroup = this.legendContainer
-                    .attr('transform', `translate(${legendLeft}, ${legendTop})`);
+                // legendGroup was created and appended to main svg above
+                legendGroup
+                    .attr('transform', `translate(${legendLeft}, ${legendTop})`); // Position relative to main svg
                 const legendItemWidth = 120;
                 const legendItemHeight = 20;
                 const legendSpacing = 10;
+                const totalLegendWidth = legendCategories.length * (legendItemWidth + legendSpacing);
+                // Calculate available width for legend scroll
+                // const availableLegendScrollWidth = width - 20; // Use visual width minus padding
+                // Create a scrollable container for the legend items
+                const legendScrollForeign = legendGroup.append('foreignObject')
+                    .attr('width', '100%') // Set foreignObject width to 100% of parent legendGroup
+                    .attr('height', legendItemHeight + 10); // Add some padding for the scrollbar
+                const legendScrollDiv = legendScrollForeign.append('xhtml:div')
+                    .style('width', '100%') // Set div width to 100% of foreignObject
+                    .style('height', '100%') // Set div height to 100% of foreignObject
+                    .style('overflow-x', 'auto') // Enable horizontal scrolling
+                    .style('overflow-y', 'hidden')
+                    .style('display', 'flex'); // Use flexbox to arrange legend items horizontally
+                const legendScrollSvg = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(legendScrollDiv.node()).append('svg')
+                    .attr('width', totalLegendWidth) // Set svg width to total width of legend items
+                    .attr('height', legendItemHeight + 10);
                 legendCategories.forEach((category, i) => {
-                    const legendItem = legendGroup.append('g')
+                    // Append legend items to the legendScrollSvg
+                    const legendItem = legendScrollSvg.append('g') // Append to legendScrollSvg
                         .attr('class', 'legend-item')
-                        .attr('transform', `translate(${i * (legendItemWidth + legendSpacing)}, 0)`)
+                        .attr('transform', `translate(${i * (legendItemWidth + legendSpacing)}, 0)`) // Position items horizontally
                         .style('cursor', 'pointer');
                     // Find a sample selection ID for the legend category
                     const sampleSegment = funnelData.flatMap(stage => stage.values).find(v => v.legend === category);
@@ -5494,7 +5523,7 @@ class Visual {
                     legendItem.append('rect')
                         .attr('width', legendItemHeight)
                         .attr('height', legendItemHeight)
-                        .attr('fill', colorScale(category)) // Use legend category to get color for legend item
+                        .attr('fill', colorScale(category)) // Use colorScale for legend item
                         .attr('rx', 3)
                         .attr('ry', 3)
                         .attr('opacity', function () {
@@ -5507,50 +5536,71 @@ class Visual {
                         .attr('y', legendItemHeight / 2)
                         .attr('dominant-baseline', 'middle')
                         .text(category)
-                        .style('font-size', `${this.formattingSettings.legend.fontSize.value}px`);
+                        .style('font-size', `${currentFormattingSettings.legend.fontSize.value}px`); // Use captured settings
                     // Add click interaction (Power BI Selection)
                     legendItem.on('click', function (event, d) {
-                        const category = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(event.currentTarget).select('text').text(); // Get category text from the clicked legend item
+                        const category = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(event.currentTarget).select('text').text();
                         // Find all selection IDs for the clicked legend category
                         const categorySelectionIds = funnelData.flatMap(stage => stage.values)
                             .filter(v => v.legend === category && v.selectionId !== undefined) // Filter out undefined selectionIds
                             .map(v => v.selectionId);
                         // Simple toggle selection for the category
                         if (categorySelectionIds.length > 0) { // Check if there are valid selectionIds
-                            // Check if ALL selectionIds for this category are currently selected
-                            const allSelected = categorySelectionIds.every(id => this.selectionManager.contains(id)); // Use type assertion for this and contains
-                            if (allSelected) {
-                                this.selectionManager.clear(); // Clear if all are already selected
+                            // Use captured 'self' to access selectionManager
+                            // Simplify toggle logic for legend: clear if any segment of this category is selected, select all if none are.
+                            const currentSelectionIds = self.selectionManager.getSelectionIds();
+                            const isCategorySelected = categorySelectionIds.some(id => currentSelectionIds.some(selectedId => selectedId.equals(id))); // Check if at least one ID in the category is selected
+                            if (isCategorySelected) {
+                                self.selectionManager.clear(); // Clear if any segment of this category is selected
+                                // Explicitly call onSelectionChanged to update visual state immediately
+                                self.onSelectionChanged(self.selectionManager.getSelectionIds());
                             }
                             else {
-                                this.selectionManager.select(categorySelectionIds, false); // Select all items in the category (single select behavior)
+                                self.selectionManager.select(categorySelectionIds, false); // Select all items in the category (single select behavior)
                             }
                         }
-                        // Opacity update is handled by onSelectionChanged
-                        // barsGroup.selectAll('rect')
-                        //    .attr('opacity', (rectD: FunnelValue) =>
-                        //         this.selectionManager.hasSelection()
-                        //         ? (this.selectionManager.getSelectionIds().some(selectedId => (selectedId as any).equals(rectD.selectionId))) ? 1 : 0.3
-                        //         : 1
-                        //     );
-                        //  legendGroup.selectAll('.legend-item rect')
-                        //      .attr('opacity', (rectD: any, i: number, nodes: any[]) => {
-                        //          const legendCategory = d3.select(nodes[i].parentNode).select('text').text();
-                        //          // Find a corresponding selection ID in the current selection based on category
-                        //          const sampleSegment = this.funnelData.flatMap(stage => stage.values).find(v => v.legend === legendCategory);
-                        //          const legendSelectionId = sampleSegment ? sampleSegment.selectionId : null;
-                        //          return this.selectionManager.hasSelection()
-                        //              ? (legendSelectionId && this.selectionManager.getSelectionIds().some(selectedId => (selectedId as any).equals(legendSelectionId))) ? 1 : 0.3
-                        //               : 1;
-                        //       });
                         event.stopPropagation(); // Prevent SVG click event
-                    }.bind(this)); // Keep .bind(this) to preserve the Visual instance context for 'this'
+                    }.bind(this)); // No .bind(this) needed
                     // Add hover effect
-                    legendItem.on('mouseover', function () {
-                        d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this).select('rect')
-                            .attr('stroke', '#666')
-                            .attr('stroke-width', 2);
-                    }).on('mouseout', function () {
+                    legendItem.on('mouseover', function (event) {
+                        const category = d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(event.currentTarget).select('text').text();
+                        const sampleSegment = funnelData.flatMap(stage => stage.values).find(v => v.legend === category);
+                        // Check if formattingSettings and general property exist before accessing showTooltip, use captured 'self'
+                        if (self.formattingSettings && self.formattingSettings.general && self.formattingSettings.general.showTooltip.value) { // Use captured 'self'
+                            let tooltipHtml = `<b>${category}</b>`;
+                            if (sampleSegment) {
+                                tooltipHtml += `<br>${sampleSegment.legend}: ${sampleSegment.value}`;
+                                // Find the rate for the current stage
+                                const stageRate = currentRates.find(r => r.stage === sampleSegment.stage); // Use captured rates
+                                if (stageRate) {
+                                    tooltipHtml += `<br>Conversion: ${stageRate.conversion}%`;
+                                    if (stageRate.dropOff !== null) {
+                                        tooltipHtml += `<br>Drop-off: ${stageRate.dropOff}%`;
+                                    }
+                                }
+                            }
+                            tooltip.style('display', 'block')
+                                .html(tooltipHtml);
+                        }
+                        // Check if formattingSettings and colors.highlightColor exist before accessing value, use captured 'self'
+                        if (self.formattingSettings && self.formattingSettings.colors && self.formattingSettings.colors.highlightColor) { // Use captured 'self'
+                            d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this).select('rect')
+                                .attr('stroke', self.formattingSettings.colors.highlightColor.value.value) // Use captured 'self'
+                                .attr('stroke-width', 2);
+                        }
+                    })
+                        .on('mousemove', function (event) {
+                        // Check if formattingSettings and general property exist before accessing showTooltip, use captured 'self'
+                        if (self.formattingSettings && self.formattingSettings.general && self.formattingSettings.general.showTooltip.value) { // Use captured 'self'
+                            tooltip.style('left', (event.pageX + 10) + 'px')
+                                .style('top', (event.pageY - 20) + 'px');
+                        }
+                    })
+                        .on('mouseout', function () {
+                        // Check if formattingSettings and general property exist before accessing showTooltip, use captured 'self'
+                        if (self.formattingSettings && self.formattingSettings.general && self.formattingSettings.general.showTooltip.value) { // Use captured 'self'
+                            tooltip.style('display', 'none');
+                        }
                         d3__WEBPACK_IMPORTED_MODULE_1__/* .select */ .Ltv(this).select('rect')
                             .attr('stroke', 'none');
                     });

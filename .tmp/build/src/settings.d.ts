@@ -42,7 +42,7 @@ export declare class VisualFormattingSettingsModel extends formattingSettings.Mo
     general: GeneralSettings;
     animation: AnimationSettings;
     interaction: InteractionSettings;
-    cards: (GeneralSettings | ColorSettings | LegendSettings | FunnelSettings | LabelSettings | AnimationSettings | InteractionSettings)[];
+    cards: formattingSettings.SimpleCard[];
 }
 export declare class FunnelSettings extends formattingSettings.SimpleCard {
     barHeight: formattingSettings.NumUpDown;
